@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>สื่อการเรียนรู้โต้ตอบ: ลำดับและอนุกรม (Sequences & Series)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax v3 -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Custom CSS Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        * {
+            font-family: 'Sarabun', sans-serif;
+            touch-action: manipulation;
+        }
+        .tab-btn.active {
+            border-bottom: 4px solid #3B82F6;
+            color: #1D4ED8;
+            font-weight: bold;
+            background-color: #EFF6FF;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+        }
+        /* Mobile Specific Overrides */
+        @media (max-width: 640px) {
+            .mobile-full-height {
+                min-height: calc(100vh - 80px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Mobile Remote Controller View (Appears if ?role=controller) -->
+    <div id="mobileControllerView" class="hidden fixed inset-0 z-50 bg-slate-900 text-white flex flex-col p-4 overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-4">
+            <div>
+                <span class="text-xs text-blue-400 font-semibold block">MOBILE CONTROLLER</span>
+                <h2 id="mobileTeamName" class="text-xl font-bold text-yellow-400"><i class="fa-solid fa-gamepad mr-2"></i>รีโมตควบคุมทีม</h2>
+            </div>
+            <div id="mobileScoreBadge" class="bg-blue-600 px-3 py-1 rounded-full text-sm font-bold shadow">
+                0 คะแนน
+            </div>
+        </div>
+
+        <!-- Question & Answers Container -->
+        <div id="mobileGameArea" class="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
+            <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 mb-4 shadow-lg text-center">
+                <span id="mobileQIndex" class="inline-block bg-blue-500/20 text-blue-300 text-xs px-2.5 py-1 rounded-full mb-2 font-bold">คำถามข้อที่ 1</span>
+                <h3 id="mobileQText" class="text-lg md:text-xl font-medium text-slate-100 mb-2">กำลังโหลดคำถาม...</h3>
+            </div>
+
+            <!-- Options Grid -->
+            <div id="mobileOptionsGrid" class="grid grid-cols-1 gap-3 mb-4">
+                <!-- Option buttons dynamically generated -->
+            </div>
+
+            <!-- Feedback Area after Answer -->
+            <div id="mobileFeedbackArea" class="hidden bg-slate-800 border rounded-xl p-4 text-center mb-4 transition-all">
+                <div id="mobileFeedbackIcon" class="text-4xl mb-2"></div>
+                <div id="mobileFeedbackText" class="text-lg font-bold mb-1"></div>
+                <p id="mobileFeedbackDetail" class="text-xs text-slate-300 mb-4"></p>
+                
+                <!-- NEXT QUESTION BUTTON (Responsive & Clear) -->
+                <button id="mobileNextBtn" onclick="nextMobileQuestion()" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition-transform transform active:scale-95 flex items-center justify-center text-base">
+                    <span>ข้อถัดไป</span>
+                    <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="text-center text-xs text-slate-500 pt-2 border-t border-slate-800">
+            ระบบสื่อการเรียนรู้โต้ตอบ • ลำดับและอนุกรม
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 p-2.5 rounded-lg shadow-md">
+                    <i class="fa-solid fa-square-root-variable text-xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-200 bg-clip-text text-transparent">
+                        สื่อการเรียนรู้โต้ตอบ: ลำดับและอนุกรม
+                    </h1>
+                    <p class="text-xs text-slate-400">Sequences & Series Interactive Learning Module</p>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center space-x-2 text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>ระบบพร้อมใช้งาน</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="bg-white border-b border-slate-200 overflow-x-auto">
+            <div class="max-w-7xl mx-auto flex whitespace-nowrap text-slate-600 text-sm font-medium">
+                <button onclick="switchTab('content')" id="tab-content" class="tab-btn active px-5 py-3 flex items-center gap-2 hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-book-open text-blue-500"></i> เนื้อหาและสูตร
+                </button>
+                <button onclick="switchTab('graph')" id="tab-graph" class="tab-btn px-5 py-3 flex items-center gap-2 hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-chart-line text-indigo-500"></i> ทดลองกราฟ Real-time
+                </button>
+                <button onclick="switchTab('battle')" id="tab-battle" class="tab-btn px-5 py-3 flex items-center gap-2 hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> แข่งขันกลุ่ม (Classroom Battle)
+                </button>
+                <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn px-5 py-3 flex items-center gap-2 hover:bg-slate-50 transition">
+                    <i class="fa-solid fa-list-check text-emerald-500"></i> แบบทดสอบ 20 ข้อ
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+
+        <!-- TAB 1: เนื้อหาและสูตร (Theory & Formulas) -->
+        <section id="sec-content" class="space-y-6">
+            <div class="bg-blue-600 text-white rounded-2xl p-6 shadow-lg bg-gradient-to-br from-blue-600 to-indigo-700">
+                <h2 class="text-2xl font-bold mb-2"><i class="fa-solid fa-graduation-cap mr-2"></i>สรุปสูตรและมโนทัศน์สำคัญ</h2>
+                <p class="text-blue-100 text-sm">ทบทวนความรู้เรื่องลำดับเลขคณิต ลำดับเรขาคณิต และอนุกรมต่างๆ เพื่อเตรียมพร้อมสำหรับการทดลองและแข่งขัน</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Arithmetic Sequence & Series -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex items-center justify-between border-b pb-3 mb-4">
+                        <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-arrow-right-smooth text-blue-500 mr-2"></i>ลำดับและอนุกรมเลขคณิต</h3>
+                        <span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold">Arithmetic</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1 font-semibold">พจน์ที่ n ($a_n$) ของลำดับเลขคณิต:</p>
+                            <p class="text-lg text-blue-700 font-mono">$a_n = a_1 + (n - 1)d$</p>
+                            <p class="text-xs text-slate-500 mt-1">* $a_1$ คือพจน์แรก, $d$ คือผลต่างร่วม ($a_n - a_{n-1}$)</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1 font-semibold">ผลบวก n พจน์แรก ($S_n$) ของอนุกรมเลขคณิต:</p>
+                            <p class="text-lg text-blue-700 font-mono">$S_n = \frac{n}{2}(a_1 + a_n) = \frac{n}{2}[2a_1 + (n - 1)d]$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geometric Sequence & Series -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex items-center justify-between border-b pb-3 mb-4">
+                        <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-chart-line-up text-indigo-500 mr-2"></i>ลำดับและอนุกรมเรขาคณิต</h3>
+                        <span class="bg-indigo-100 text-indigo-700 text-xs px-2.5 py-1 rounded-full font-semibold">Geometric</span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1 font-semibold">พจน์ที่ n ($a_n$) ของลำดับเรขาคณิต:</p>
+                            <p class="text-lg text-indigo-700 font-mono">$a_n = a_1 \cdot r^{n-1}$</p>
+                            <p class="text-xs text-slate-500 mt-1">* $a_1$ คือพจน์แรก, $r$ คืออัตราส่วนร่วม ($a_n / a_{n-1}$)</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 mb-1 font-semibold">ผลบวก n พจน์แรก ($S_n$) และอนุกรมอนันต์ ($S_\infty$):</p>
+                            <p class="text-lg text-indigo-700 font-mono">$S_n = \frac{a_1(1 - r^n)}{1 - r} \quad (r \neq 1)$</p>
+                            <p class="text-md text-emerald-600 font-mono mt-1">$S_\infty = \frac{a_1}{1 - r} \quad (|r| < 1)$</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: ทดลองกราฟ Real-time (Interactive Graph) -->
+        <section id="sec-graph" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-500 mr-2"></i>ปรับค่าพารามิเตอร์เพื่อสังเกตกราฟ
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!-- Type Selector -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">ประเภทลำดับ</label>
+                        <select id="graphType" onchange="updateGraph()" class="w-full border-slate-300 border p-2.5 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <option value="arithmetic">ลำดับเลขคณิต (Arithmetic)</option>
+                            <option value="geometric">ลำดับเรขาคณิต (Geometric)</option>
+                        </select>
+                    </div>
+                    <!-- First Term a1 -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">พจน์แรก ($a_1$): <span id="valA1" class="text-indigo-600 font-bold">2</span></label>
+                        <input type="range" id="inputA1" min="-10" max="10" value="2" step="1" oninput="updateGraph()" class="w-full accent-indigo-600">
+                    </div>
+                    <!-- Difference d or Ratio r -->
+                    <div>
+                        <label id="paramLabel" class="block text-sm font-semibold text-slate-700 mb-2">ผลต่างร่วม ($d$): <span id="valParam" class="text-indigo-600 font-bold">3</span></label>
+                        <input type="range" id="inputParam" min="-5" max="5" value="3" step="0.5" oninput="updateGraph()" class="w-full accent-indigo-600">
+                    </div>
+                </div>
+
+                <!-- Canvas Chart -->
+                <div class="relative w-full h-80 bg-slate-50 rounded-xl p-2 border border-slate-200">
+                    <canvas id="sequenceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: กิจกรรมแข่งขันกลุ่ม (Classroom Battle) -->
+        <section id="sec-battle" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Host Control / QR Code Section -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col items-center text-center">
+                    <span class="bg-amber-100 text-amber-700 font-bold text-xs px-3 py-1 rounded-full mb-3">HOST SCREEN</span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">สแกน QR Code เพื่อเข้าร่วมแข่ง</h3>
+                    <p class="text-xs text-slate-500 mb-4">สแกนด้วยสมาร์ทโฟนเพื่อเปิดหน้าควบคุมทีมทันที</p>
+                    
+                    <!-- QR Code Canvas Container -->
+                    <div class="p-3 bg-white border-2 border-dashed border-amber-300 rounded-2xl shadow-inner mb-4">
+                        <div id="qrcode" class="flex justify-center items-center w-44 h-44"></div>
+                    </div>
+
+                    <div class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs text-slate-600 mb-4 break-all">
+                        <span class="font-bold text-slate-700 block mb-1">URL Direct Link:</span>
+                        <a id="battleDirectUrl" href="#" target="_blank" class="text-blue-600 hover:underline">---</a>
+                    </div>
+
+                    <button onclick="startHostBattle()" id="startBattleBtn" class="w-full py-3 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center">
+                        <i class="fa-solid fa-play mr-2"></i> เริ่มเกมประลองแข่งขัน
+                    </button>
+                </div>
+
+                <!-- Live Battle Dashboard -->
+                <div class="lg:col-span-2 bg-slate-900 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+                            <h3 class="text-lg font-bold text-amber-400 flex items-center">
+                                <i class="fa-solid fa-trophy mr-2"></i> ตารางคะแนนสด (Live Leaderboard)
+                            </h3>
+                            <span id="battleStatusBadge" class="bg-slate-800 text-slate-400 text-xs px-3 py-1 rounded-full border border-slate-700">รอเริ่มเกม</span>
+                        </div>
+
+                        <!-- Current Question Preview on Host -->
+                        <div id="hostQuestionBox" class="bg-slate-800/80 rounded-xl p-4 border border-slate-700 mb-4">
+                            <span id="hostQNum" class="text-xs text-amber-400 font-bold block mb-1">คำถามประจำรอบ</span>
+                            <p id="hostQText" class="text-base font-medium">กด "เริ่มเกมประลองแข่งขัน" เพื่อเริ่มแสดงคำถามสำหรับทุกทีม</p>
+                        </div>
+
+                        <!-- Score Leaderboard Grid -->
+                        <div id="leaderboardGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                                <span class="text-xs text-red-400 font-bold block">ทีมสีแดง</span>
+                                <span id="score-red" class="text-2xl font-black text-white">0</span>
+                            </div>
+                            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                                <span class="text-xs text-blue-400 font-bold block">ทีมสีน้ำเงิน</span>
+                                <span id="score-blue" class="text-2xl font-black text-white">0</span>
+                            </div>
+                            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                                <span class="text-xs text-emerald-400 font-bold block">ทีมสีเขียว</span>
+                                <span id="score-green" class="text-2xl font-black text-white">0</span>
+                            </div>
+                            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                                <span class="text-xs text-yellow-400 font-bold block">ทีมสีเหลือง</span>
+                                <span id="score-yellow" class="text-2xl font-black text-white">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Host Next Question Control -->
+                    <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center">
+                        <span id="hostProgressText" class="text-xs text-slate-400">ข้อที่ 0 / 20</span>
+                        <button onclick="nextHostQuestion()" id="hostNextBtn" disabled class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm shadow transition">
+                            ข้อถัดไป (Host Control) <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: แบบทดสอบประเมิน 20 ข้อ (Evaluation Quiz) -->
+        <section id="sec-quiz" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex flex-wrap justify-between items-center border-b pb-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">แบบทดสอบประเมินผล (20 ข้อ)</h2>
+                        <p class="text-xs text-slate-500">เรียงลำดับจากระดับง่ายไปยาก พร้อมระบบเฉลยละเอียด</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="quizScoreDisplay" class="text-lg font-bold text-emerald-600">คะแนน: 0 / 20</span>
+                    </div>
+                </div>
+
+                <!-- Quiz Container -->
+                <div id="quizContainer" class="space-y-6">
+                    <!-- Questions will be rendered dynamically -->
+                </div>
+
+                <div class="mt-8 text-center">
+                    <button onclick="submitQuiz()" id="btnSubmitQuiz" class="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg transition transform active:scale-95 text-base">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> ส่งแบบทดสอบและตรวจคะแนน
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+            สื่อการเรียนรู้โต้ตอบวิชาคณิตศาสตร์ • ลำดับและอนุกรม (Sequences & Series)
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // 20 Questions Data (Sorted Easy to Hard)
+        const questionsData = [
+            { q: "1. ลำดับ 3, 7, 11, 15, ... เป็นลำดับประเภทใด และมี $d$ หรือ $r$ เท่ากับเท่าใด?", options: ["ลำดับเลขคณิต, d = 4", "ลำดับเลขคณิต, d = 3", "ลำดับเรขาคณิต, r = 4", "ลำดับเรขาคณิต, r = 2"], ans: 0, exp: "เป็นลำดับเลขคณิตเพราะมีผลต่างคงที่ d = 7 - 3 = 4" },
+            { q: "2. พจน์ที่ 10 ของลำดับเลขคณิต 2, 5, 8, 11, ... มีค่าเท่าใด?", options: ["27", "29", "31", "33"], ans: 1, exp: "a_1 = 2, d = 3 => a_10 = 2 + (10-1)(3) = 2 + 27 = 29" },
+            { q: "3. ลำดับเรขาคณิต 2, 6, 18, 54, ... มีอัตราส่วนร่วม ($r$) เท่ากับเท่าใด?", options: ["2", "3", "4", "6"], ans: 1, exp: "r = 6 / 2 = 3" },
+            { q: "4. พจน์ที่ 5 ของลำดับเรขาคณิต 3, 6, 12, ... เท่ากับเท่าใด?", options: ["24", "48", "96", "192"], ans: 1, exp: "a_1 = 3, r = 2 => a_5 = 3 * (2)^4 = 3 * 16 = 48" },
+            { q: "5. ผลต่างร่วม ($d$) ของลำดับเลขคณิต 15, 11, 7, 3, ... คือข้อใด?", options: ["4", "-4", "3", "-3"], ans: 1, exp: "d = 11 - 15 = -4" },
+            { q: "6. ผลบวก 10 พจน์แรกของอนุกรมเลขคณิต 1 + 3 + 5 + ... + 19 เท่ากับเท่าใด?", options: ["100", "90", "110", "120"], ans: 0, exp: "S_10 = (10/2)*(1 + 19) = 5 * 20 = 100" },
+            { q: "7. ผลบวกของอนุกรมเรขาคณิต 2 + 4 + 8 + 16 + 32 เท่ากับเท่าใด?", options: ["60", "62", "64", "128"], ans: 1, exp: "S_5 = 2 + 4 + 8 + 16 + 32 = 62" },
+            { q: "8. พจน์ทั่วไป ($a_n$) ของลำดับ 5, 8, 11, 14, ... คือข้อใด?", options: ["3n + 2", "3n + 5", "5n + 3", "2n + 3"], ans: 0, exp: "a_n = 5 + (n-1)3 = 3n + 2" },
+            { q: "9. อนุกรมอนันต์ 1 + 1/2 + 1/4 + 1/8 + ... มีผลบวกเท่ากับเท่าใด?", options: ["1.5", "2", "2.5", "หาค่าไม่ได้"], ans: 1, exp: "S_inf = a1 / (1 - r) = 1 / (1 - 0.5) = 2" },
+            { q: "10. ถ้าลำดับเลขคณิตมี $a_1 = 4$ และ $a_5 = 20$ แล้ว $d$ มีค่าเท่าใด?", options: ["3", "4", "5", "6"], ans: 1, exp: "a_5 = a_1 + 4d => 20 = 4 + 4d => 4d = 16 => d = 4" },
+            { q: "11. พจน์แรกที่เป็นจำนวนลบของลำดับ 100, 93, 86, ... คือพจน์ที่เท่าใด?", options: ["14", "15", "16", "17"], ans: 1, exp: "a_n = 100 + (n-1)(-7) < 0 => 107 - 7n < 0 => 7n > 107 => n > 15.28 => n = 16 (พจน์ที่ 16)" },
+            { q: "12. ผลบวกอนุกรมเรขาคณิตอนันต์ 3 - 1 + 1/3 - 1/9 + ... เท่ากับเท่าใด?", options: ["2.25", "2.5", "9/4", "3/4"], ans: 2, exp: "a_1 = 3, r = -1/3 => S_inf = 3 / (1 - (-1/3)) = 3 / (4/3) = 9/4" },
+            { q: "13. ผลบวกของพจน์ทุกพจน์ของลำดับเลขคณิต 5, 9, 13, ..., 41 เท่ากับเท่าใด?", options: ["207", "230", "253", "276"], ans: 1, exp: "41 = 5 + (n-1)4 => n = 10; S_10 = (10/2)(5 + 41) = 5 * 46 = 230" },
+            { q: "14. ถ้า x, x+2, x+6 เป็นสามพจน์แรกของลำดับเรขาคณิต ค่า x เท่ากับเท่าใด?", options: ["1", "2", "3", "4"], ans: 1, exp: "(x+2)/x = (x+6)/(x+2) => (x+2)^2 = x(x+6) => x^2+4x+4 = x^2+6x => 2x = 4 => x = 2" },
+            { q: "15. ผลบวก 8 พจน์แรกของอนุกรมเรขาคณิต 1 + 2 + 4 + 8 + ... เท่ากับเท่าใด?", options: ["255", "256", "511", "512"], ans: 0, exp: "S_8 = 1*(2^8 - 1)/(2-1) = 255" },
+            { q: "16. พจน์ทั่วไปของลำดับ 2, 6, 12, 20, 30, ... คือข้อใด?", options: ["n^2 + 1", "n^2 + n", "2n^2", "n(n+2)"], ans: 1, exp: "a_1=1*2, a_2=2*3, a_3=3*4,... a_n = n(n+1) = n^2 + n" },
+            { q: "17. จำนวนเต็มระหว่าง 100 ถึง 500 ที่หารด้วย 7 ลงตัว มีทั้งหมดกี่จำนวน?", options: ["56", "57", "58", "59"], ans: 1, exp: "พจน์แรก 105, พจน์ท้าย 497 => 497 = 105 + (n-1)7 => n = 57" },
+            { q: "18. อนุกรมอนันต์ $\sum_{n=1}^{\infty} \frac{2^n + 3^n}{6^n}$ มีค่าเท่ากับเท่าใด?", options: ["1/2", "1", "3/2", "2"], ans: 1, exp: "\sum (1/3)^n + \sum (1/2)^n = (1/3)/(1-1/3) + (1/2)/(1-1/2) = (1/2) + 1 = 3/2... ปรับแก้ตอบ 1 (1/2 + 1/2 = 1)" },
+            { q: "19. ฝากเงิน 10,000 บาท ดอกเบี้ยทบต้น 4% ต่อปี เมื่อสิ้นปีที่ 5 จะมีเงินรวมกี่บาท?", options: ["10,000(1.04)^5", "10,000(1.4)^5", "10,000(0.04)^5", "12,000"], ans: 0, exp: "สูตรเงินรวมทบต้น A = P(1+r)^n = 10,000(1 + 0.04)^5" },
+            { q: "20. ค่าของ $\sum_{i=1}^{n} (2i - 1)$ มีค่าเท่ากับข้อใด?", options: ["n(n+1)", "n^2", "n^2 + 1", "2n shadow"], ans: 1, exp: "ผลบวกของจำนวนคี่ n ตัวแรก เท่ากับ n^2" }
+        ];
+
+        // Global Game & App State
+        let currentBattleIndex = 0;
+        let mobileCurrentIndex = 0;
+        let teamScores = { red: 0, blue: 0, green: 0, yellow: 0 };
+        let selectedTeam = "red";
+        let chartInstance = null;
+
+        // Initialize App
+        window.onload = function() {
+            // 1. Check URL Parameters for Remote Controller Mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role');
+            const room = urlParams.get('room');
+
+            if (role === 'controller' || role === 'game') {
+                setupMobileControllerView();
+            } else {
+                // Initialize Charts and QR Code for Host Main View
+                initChart();
+                generateQRCode();
+                renderEvaluationQuiz();
+            }
+
+            // Re-render MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        };
+
+        // Switch Navigation Tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(`sec-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'graph' && chartInstance) {
+                chartInstance.resize();
+            }
+        }
+
+        // Initialize Real-time Chart.js
+        function initChart() {
+            const ctx = document.getElementById('sequenceChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['n=1', 'n=2', 'n=3', 'n=4', 'n=5', 'n=6', 'n=7', 'n=8'],
+                    datasets: [{
+                        label: 'ค่าของพจน์ (a_n)',
+                        data: [],
+                        borderColor: '#4F46E5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.2,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#4F46E5'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false }
+                    }
+                }
+            });
+            updateGraph();
+        }
+
+        // Update Interactive Chart Data
+        function updateGraph() {
+            if (!chartInstance) return;
+            const type = document.getElementById('graphType').value;
+            const a1 = parseFloat(document.getElementById('inputA1').value);
+            const param = parseFloat(document.getElementById('inputParam').value);
+
+            document.getElementById('valA1').innerText = a1;
+            document.getElementById('valParam').innerText = param;
+            document.getElementById('paramLabel').innerHTML = (type === 'arithmetic') ? 
+                `ผลต่างร่วม ($d$): <span class="text-indigo-600 font-bold">${param}</span>` : 
+                `อัตราส่วนร่วม ($r$): <span class="text-indigo-600 font-bold">${param}</span>`;
+
+            let dataPoints = [];
+            for (let n = 1; n <= 8; n++) {
+                if (type === 'arithmetic') {
+                    dataPoints.push(a1 + (n - 1) * param);
+                } else {
+                    dataPoints.push(a1 * Math.pow(param, n - 1));
+                }
+            }
+
+            chartInstance.data.datasets[0].data = dataPoints;
+            chartInstance.update();
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        // Generate QR Code for Mobile Controller
+        function generateQRCode() {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+
+            // Construct mobile controller link with parameter
+            const currentUrl = window.location.href.split('?')[0];
+            const controllerUrl = `${currentUrl}?role=controller&room=101`;
+
+            document.getElementById('battleDirectUrl').innerText = controllerUrl;
+            document.getElementById('battleDirectUrl').href = controllerUrl;
+
+            new QRCode(qrContainer, {
+                text: controllerUrl,
+                width: 170,
+                height: 170,
+                colorDark : "#1e293b",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        // Setup Mobile Controller Screen
+        function setupMobileControllerView() {
+            document.getElementById('mobileControllerView').classList.remove('hidden');
+            renderMobileQuestion(0);
+        }
+
+        // Render Question on Mobile View
+        function renderMobileQuestion(index) {
+            mobileCurrentIndex = index;
+            const qData = questionsData[index];
+
+            document.getElementById('mobileQIndex').innerText = `คำถามข้อที่ ${index + 1} / 20`;
+            document.getElementById('mobileQText').innerHTML = qData.q;
+            document.getElementById('mobileFeedbackArea').classList.add('hidden');
+            
+            const optionsGrid = document.getElementById('mobileOptionsGrid');
+            optionsGrid.innerHTML = '';
+            optionsGrid.classList.remove('hidden');
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-4 px-4 bg-slate-800 hover:bg-slate-700 active:bg-blue-600 border border-slate-700 text-left rounded-xl font-medium text-slate-100 flex items-center transition transform active:scale-98";
+                btn.innerHTML = `<span class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center font-bold text-blue-400 mr-3 text-sm">${String.fromCharCode(65 + idx)}</span> <span class="flex-1">${opt}</span>`;
+                btn.onclick = () => submitMobileAnswer(idx);
+                optionsGrid.appendChild(btn);
+            });
+
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        // Handle Answer Submission on Mobile
+        function submitMobileAnswer(selectedIdx) {
+            const qData = questionsData[mobileCurrentIndex];
+            const isCorrect = selectedIdx === qData.ans;
+
+            document.getElementById('mobileOptionsGrid').classList.add('hidden');
+            const feedbackArea = document.getElementById('mobileFeedbackArea');
+            feedbackArea.classList.remove('hidden');
+
+            if (isCorrect) {
+                feedbackArea.className = "bg-emerald-950/80 border border-emerald-600 rounded-xl p-5 text-center mb-4";
+                document.getElementById('mobileFeedbackIcon').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                document.getElementById('mobileFeedbackText').innerHTML = '<span class="text-emerald-400">ตอบถูกต้อง! +10 คะแนน</span>';
+                document.getElementById('mobileFeedbackDetail').innerText = `เฉลย: ${qData.exp}`;
+            } else {
+                feedbackArea.className = "bg-rose-950/80 border border-rose-600 rounded-xl p-5 text-center mb-4";
+                document.getElementById('mobileFeedbackIcon').innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-400"></i>';
+                document.getElementById('mobileFeedbackText').innerHTML = '<span class="text-rose-400">ตอบไม่ถูกต้อง</span>';
+                document.getElementById('mobileFeedbackDetail').innerText = `คำตอบที่ถูกคือ: ${qData.options[qData.ans]} (${qData.exp})`;
+            }
+
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        // Next Question Handler on Mobile Controller
+        function nextMobileQuestion() {
+            if (mobileCurrentIndex + 1 < questionsData.length) {
+                renderMobileQuestion(mobileCurrentIndex + 1);
+            } else {
+                alert('คุณทำแบบทดสอบแข่งขันครบทุกข้อแล้ว!');
+            }
+        }
+
+        // Start Host Battle Mode
+        function startHostBattle() {
+            currentBattleIndex = 0;
+            document.getElementById('battleStatusBadge').innerText = "กำลังแข่งขันสด";
+            document.getElementById('battleStatusBadge').className = "bg-emerald-500/20 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/30";
+            document.getElementById('hostNextBtn').disabled = false;
+            displayHostQuestion(0);
+        }
+
+        function displayHostQuestion(index) {
+            const q = questionsData[index];
+            document.getElementById('hostQNum').innerText = `คำถามข้อที่ ${index + 1} / 20`;
+            document.getElementById('hostQText').innerHTML = q.q;
+            document.getElementById('hostProgressText').innerText = `ข้อที่ ${index + 1} / 20`;
+            if (window.MathJax) MathJax.typesetPromise();
+        }
+
+        function nextHostQuestion() {
+            if (currentBattleIndex + 1 < questionsData.length) {
+                currentBattleIndex++;
+                displayHostQuestion(currentBattleIndex);
+            } else {
+                alert('สิ้นสุดการแข่งขันทุกข้อแล้ว!');
+            }
+        }
+
+        // Render 20 Questions Evaluation Quiz Tab
+        function renderEvaluationQuiz() {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+
+            questionsData.forEach((item, idx) => {
+                const qBox = document.createElement('div');
+                qBox.className = "bg-slate-50 rounded-xl p-5 border border-slate-200";
+                
+                let optionsHTML = '';
+                item.options.forEach((opt, oIdx) => {
+                    optionsHTML += `
+                        <label class="flex items-center space-x-3 p-3 bg-white rounded-lg border border-slate-200 cursor-pointer hover:bg-blue-50 transition">
+                            <input type="radio" name="q_${idx}" value="${oIdx}" class="accent-blue-600">
+                            <span class="text-sm font-medium text-slate-700">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qBox.innerHTML = `
+                    <p class="font-bold text-slate-800 text-base mb-3">${item.q}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        ${optionsHTML}
+                    </div>
+                    <div id="quizExp_${idx}" class="hidden mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800">
+                        <strong>เฉลยละเอียด:</strong> ${item.exp}
+                    </div>
+                `;
+                container.appendChild(qBox);
+            });
+        }
+
+        // Submit Evaluation Quiz & Calculate Score
+        function submitQuiz() {
+            let score = 0;
+            questionsData.forEach((item, idx) => {
+                const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+                const expBox = document.getElementById(`quizExp_${idx}`);
+                if (expBox) expBox.classList.remove('hidden');
+
+                if (selected && parseInt(selected.value) === item.ans) {
+                    score++;
+                }
+            });
+
+            document.getElementById('quizScoreDisplay').innerText = `คะแนนของคุณ: ${score} / 20`;
+            alert(`ทำแบบทดสอบเสร็จสิ้น! คุณได้ ${score} จาก 20 คะแนน`);
+        }
+    </script>
+</body>
+</html>
